@@ -224,6 +224,7 @@ describe Hand do
   end
 end
 
+<<<<<<< HEAD
 # describe Player do
 
 #   subject (:player) { Player.new(100) }
@@ -254,3 +255,35 @@ end
 #   describe "#" 
 
 # end
+=======
+describe Player do
+
+  subject (:player) { Player.new(100) }
+
+  it { should respond_to(:hand) }
+  it { should respond_to(:pot) }
+  it { should respond_to(:hand) }
+  it { should respond_to(:hand) }
+  it { should respond_to(:hand) }
+
+
+  describe "::buy_in" do
+    it "should create a player" do
+      
+    end
+  end 
+  describe "#" 
+  describe "#" 
+  describe "#" 
+
+end
+
+describe Game do
+  describe "#" 
+  describe "#" 
+  describe "#" 
+  describe "#" 
+  describe "#" 
+
+end
+>>>>>>> d6ffc10d826e154dcb609475d4a23036ada862aa
