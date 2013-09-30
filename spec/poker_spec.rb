@@ -65,9 +65,7 @@ describe Hand do
   subject(:hand) { Hand.new }
 
   it { should respond_to(:add_card) }
-  it { should respond_to(:replace_card)}
   it { should respond_to(:hand_type)}
-  it { should respond_to(:sort) }
 
   describe "#add_card" do
 
@@ -79,9 +77,17 @@ describe Hand do
 
   end
 
-  describe "#replace_card" do
-    it "should not change the size of the hand"
-    it "should change the hand"
+  describe "#discard_cards" do
+    it "Should discard the correct cards" do
+      hand.add_card(Card.new(:hearts, '5'))
+      hand.add_card(Card.new(:spades, 'J'))
+      hand.add_card(Card.new(:clubs, '4'))
+      hand.add_card(Card.new(:diamonds, '8'))
+      hand.add_card(Card.new(:hearts, 'Q'))
+      
+      hand.discard_cards([0, 1, 3])
+      hand.ranks.should == [4, 12]
+    end
   end
 
   describe "#hand_type" do
@@ -93,7 +99,7 @@ describe Hand do
       hand.add_card(Card.new(:diamonds, '5'))
       hand.add_card(Card.new(:hearts, 'Q'))
 
-      hand.hand_type.should == [:four_of_a_kind,[5,5,5,5,12]]
+      hand.hand_type.should == :four_of_a_kind
     end
 
     it "should identify a full house" do
@@ -102,7 +108,7 @@ describe Hand do
       hand.add_card(Card.new(:clubs, '5'))
       hand.add_card(Card.new(:diamonds, '8'))
       hand.add_card(Card.new(:hearts, '8'))
-      hand.hand_type.should == [:full_house,[5,5,5,8,8]]
+      hand.hand_type.should == :full_house
     end
 
     it "should identify a straight" do
@@ -112,7 +118,7 @@ describe Hand do
       hand.add_card(Card.new(:clubs, '3'))
       hand.add_card(Card.new(:hearts, '4'))
 
-      hand.hand_type.should == [:straight,[5,4,3,2,1]]
+      hand.hand_type.should == :straight
     end
 
     it "should identify a flush" do
@@ -122,7 +128,7 @@ describe Hand do
       hand.add_card(Card.new(:spades, '7'))
       hand.add_card(Card.new(:spades, '2'))
 
-      hand.hand_type.should == [:flush,[11,8,7,5,2]]
+      hand.hand_type.should == :flush
     end
 
     it "should identify a straight-flush" do
@@ -132,7 +138,7 @@ describe Hand do
       hand.add_card(Card.new(:hearts, 'A'))
       hand.add_card(Card.new(:hearts, 'Q'))
 
-      hand.hand_type.should == [:straight_flush,[14, 13, 12, 11, 10]]
+      hand.hand_type.should == :straight_flush
     end
 
     it "should identify a two-pair" do
@@ -142,7 +148,7 @@ describe Hand do
       hand.add_card(Card.new(:spades, '7'))
       hand.add_card(Card.new(:hearts, '7'))
 
-      hand.hand_type.should == [:two_pair,[7,7,5,5,14]]
+      hand.hand_type.should == :two_pair
     end
 
     it "should identify a three-of-a-kind" do
@@ -152,7 +158,7 @@ describe Hand do
       hand.add_card(Card.new(:spades, '8'))
       hand.add_card(Card.new(:hearts, '7'))
 
-      hand.hand_type.should == [:three_of_a_kind,[5,5,5,8,7]]
+      hand.hand_type.should == :three_of_a_kind
     end
 
     it "should identify a pair" do
@@ -162,18 +168,18 @@ describe Hand do
       hand.add_card(Card.new(:spades, '7'))
       hand.add_card(Card.new(:hearts, '7'))
 
-      hand.hand_type.should == [:pair,[7,7,14,11,5]]
+      hand.hand_type.should == :pair
     end
   end
 
   describe "#<=>" do
 
-    let(:straight_hand) { double("straight hand", :hand_type => [:straight,1], :tie_breaker_arr => [9,8,7,6,5]) }
-    let(:flush_hand) { double("flush hand", :hand_type => [:flush,1], :tie_breaker_arr => [13,11,5,4,2]) }
-    let(:pair) { double("pair hand", :hand_type => [:pair,1], :tie_breaker_arr => [7,7,5,4,3]) }
-    let(:two_pair_hand) {double("two pair hand", :hand_type => [:two_pair,1], :tie_breaker_arr => [11,11,10,10,6])}
-    let(:another_two_pair_hand) {double("another two pair hand", :hand_type => [:two_pair,1], :tie_breaker_arr => [13,13,7,7,6])}
-    let(:another_flush_hand) {double("another flush", :hand_type => [:flush,1], :tie_breaker_arr => [13,10,8,7,6])}
+    let(:straight_hand) { double("straight hand", :hand_type => :straight, :ranks => [9,8,7,6,5]) }
+    let(:flush_hand) { double("flush hand", :hand_type => :flush, :ranks => [13,11,5,4,2]) }
+    let(:pair) { double("pair hand", :hand_type => :pair, :ranks => [7,7,5,4,3]) }
+    let(:two_pair_hand) {double("two pair hand", :hand_type => :two_pair, :ranks => [11,11,10,10,6])}
+    let(:another_two_pair_hand) {double("another two pair hand", :hand_type => :two_pair, :ranks => [13,13,7,7,6])}
+    let(:another_flush_hand) {double("another flush", :hand_type => :flush, :ranks => [13,10,8,7,6])}
 
     before(:each) do
       hand.add_card(Card.new(:hearts, '5'))
@@ -204,16 +210,47 @@ describe Hand do
     end
   end
 
-  # describe "#sort" do
-  #   it "..." do
-  #     hand.add_card(Card.new(:hearts, '5'))
-  #     hand.add_card(Card.new(:diamonds, 'J'))
-  #     hand.add_card(Card.new(:hearts, 'A'))
-  #     hand.add_card(Card.new(:spades, '7'))
-  #     hand.add_card(Card.new(:hearts, '7'))
-  #
-  #   end
-  # end
+  describe "#rearrange_hand" do
+    it "should sort higher frequencies first, then higher values" do
+      hand.add_card(Card.new(:hearts, '5'))
+      hand.add_card(Card.new(:diamonds, '7'))
+      hand.add_card(Card.new(:hearts, 'A'))
+      hand.add_card(Card.new(:spades, '5'))
+      hand.add_card(Card.new(:hearts, '7'))
 
-
+      hand.rearrange_hand!
+      hand.cards.map {|card| card.rank}.should == [7,7,5,5,14]
+    end
+  end
 end
+
+# describe Player do
+
+#   subject (:player) { Player.new(100) }
+
+#   it { should respond_to(:hand) }
+#   it { should respond_to(:pot) }
+#   it { should respond_to(:hand) }
+#   it { should respond_to(:hand) }
+#   it { should respond_to(:hand) }
+
+
+#   describe "::buy_in" do
+#     it "should create a player" do
+      
+#     end
+#   end 
+#   describe "#" 
+#   describe "#" 
+#   describe "#" 
+
+# end
+
+# describe Game do
+#   describe "#" 
+#   describe "#" 
+#   describe "#" 
+#   describe "#" 
+#   describe "#" 
+
+# end
